@@ -1,0 +1,1706 @@
+/*
+  The desktop shell: the phone frame, the product statement beside it, the
+  page's sections and the developer footer.
+
+  Referenced from web/index.html. The boot gate is shell/boot.js, the page's
+  interactions are shell/site.js and every showcased screen is shell/data.js.
+  A shell window is the only place any of this paints; every other window keeps
+  Flutter's full-page embedding.
+*/
+
+:root {
+  --duo-brand: 106, 118, 190;
+  --bezel: 6px;
+  --frame-radius: 50px;
+  --screen-radius: 44px;
+  --status-height: 34px;
+  --nav-height: 56px;
+  --page-pad: clamp(24px, 4vw, 64px);
+  /* The reference phone is an iPhone 15 Pro: 393 x 852 logical points. The
+     screen is drawn at that size and the whole frame is scaled to the room
+     under the bar (`shell/boot.js` writes --frame-scale), so the app always
+     lays out at a real phone's width instead of at whatever the window fits. */
+  --screen-width: 393px;
+  --screen-height: 852px;
+  --frame-scale: 1;
+  --frame-real-width: calc(var(--screen-width) + 2 * var(--bezel));
+  --frame-real-height: calc(var(--screen-height) + 2 * var(--bezel));
+  --frame-width: calc(var(--frame-real-width) * var(--frame-scale));
+  --frame-height: calc(var(--frame-real-height) * var(--frame-scale));
+  /* The hero row, shared by the copy column and the top bar so the bar's
+     wordmark starts on the copy's left edge and its badge ends on the
+     phone's right edge. */
+  --intro-width: clamp(440px, 40vw, 600px);
+  --hero-gap: clamp(40px, 5vw, 96px);
+  --hero-width: calc(var(--intro-width) + var(--hero-gap) + var(--frame-width));
+  /* The showcase and footer share one content width, wider than the hero:
+     three phone-width cards and their gaps. */
+  --inside-width: 1120px;
+}
+
+/* The copy column, the showcase and the footer stand on the desk with the
+   frame, so they follow the OS scheme rather than the app's atmosphere pack. */
+html.shell {
+  --intro-ink: #17181F;
+  --intro-muted: #5B5F70;
+  --intro-hair: rgba(23, 24, 31, 0.12);
+  --intro-accent: #5A66B4;
+  --intro-on-ink: #FFFFFF;
+  --intro-surface: #FFFFFF;
+  --intro-font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  --intro-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
+    Georgia, "Times New Roman", serif;
+  /* The page's scrollbar, tuned to the shell's own ink: a quiet pill that
+     darkens under the pointer. Firefox takes the two-colour form below;
+     WebKit, Chrome and Edge take the rules after it. The track is painted
+     because the gutter is part of the root, whose canvas is white. */
+  --intro-canvas: #F1F2F8;
+  /* A recessed wall for the screen tour: one step down from the canvas, so the
+     gallery reads as its own room and the white phones sit forward on it. */
+  --intro-wall: #E9EBF3;
+  --intro-scrollbar: rgba(23, 24, 31, 0.2);
+  --intro-scrollbar-hover: rgba(23, 24, 31, 0.36);
+  /* The gutter is painted by the root's own canvas, so the root has to carry
+     the page's colour: left white, it reads as a bright strip down the dark
+     page and shows through wherever the scrollbar paints nothing. */
+  background-color: var(--intro-canvas);
+  scroll-behavior: smooth;
+}
+
+/* A 12px gutter with the thumb inset by 4px, so its rounded edge floats clear
+   of the track instead of printing a bar. */
+html.shell::-webkit-scrollbar {
+  width: 12px;
+}
+
+html.shell::-webkit-scrollbar-track {
+  background: var(--intro-canvas);
+}
+
+html.shell::-webkit-scrollbar-thumb {
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background: var(--intro-scrollbar);
+  background-clip: content-box;
+}
+
+html.shell::-webkit-scrollbar-thumb:hover {
+  /* The shorthand resets the clip, so it is stated again after the colour. */
+  background: var(--intro-scrollbar-hover);
+  background-clip: content-box;
+}
+
+/* Chromium ignores the pseudo-element rules as soon as the standard properties
+   are set, so they are kept for the engines that have no `::-webkit-scrollbar`
+   at all. The body is named too: it is the box that carries the scroller. */
+@supports not selector(::-webkit-scrollbar) {
+  html.shell,
+  html.shell body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--intro-scrollbar) var(--intro-canvas);
+  }
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* A live region and any label that should not paint. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The skip door exists only where the page does; the wide-window block below
+   shows it. */
+.skip-link {
+  display: none;
+}
+
+/* The backdrop the device sits on. Only painted when the shell is on, and
+   deliberately flat: ambient light belongs to a section (the hero's spotlight,
+   the closing panel's glow), never to a fixed layer behind the whole page —
+   a fixed wash would travel with the window and cut every section in two. */
+#stage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: var(--intro-canvas);
+}
+
+/* Until the boot gate adds `shell`, nothing here exists: the app keeps
+   Flutter's full-page embedding, exactly as before. */
+#device {
+  display: none;
+}
+
+/* The shell's own furniture: the top bar, the copy column, the showcase and
+   the footer. The wide-window media query below gives them their layout. */
+#intro,
+#nav,
+#start,
+#inside,
+#screens,
+#local-first,
+#details,
+#get,
+#footer {
+  display: none;
+}
+
+html.shell #stage {
+  display: block;
+}
+
+html.shell #device {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+html.shell #frame {
+  position: relative;
+  /* The screen owns the pointer; the device only positions it. */
+  pointer-events: auto;
+}
+
+/* Outside the gate the wrapper dissolves: the frame is the device's own child
+   again, which is what the full-bleed fallback expects. */
+.device-frame {
+  display: contents;
+}
+
+/* A `shell` window resized below the breakpoint keeps the app in #screen,
+   full-bleed, instead of trying to unmount the engine. */
+html.shell #screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #FFFFFF;
+}
+
+html.shell #app {
+  position: absolute;
+  inset: 0;
+}
+
+html.shell #statusbar,
+html.shell .hw-button {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.shell {
+    --intro-ink: #F3F3F7;
+    --intro-muted: #A2A4B3;
+    --intro-hair: rgba(255, 255, 255, 0.12);
+    --intro-accent: #AEB6EA;
+    --intro-on-ink: #0B0C10;
+    --intro-surface: #1B1C23;
+    --intro-canvas: #0D0E13;
+    --intro-wall: #12131A;
+    --intro-scrollbar: rgba(255, 255, 255, 0.18);
+    --intro-scrollbar-hover: rgba(255, 255, 255, 0.32);
+  }
+
+  html.shell body {
+    background-color: #0D0E13;
+  }
+
+  html.shell #screen {
+    background-color: #0D0E13;
+  }
+}
+
+/* The breakpoint is repeated in shell/boot.js; change both together. */
+@media (min-width: 720px) and (min-height: 760px) and (pointer: fine) {
+  /* The page scrolls once the showcase is below the hero; below this
+     breakpoint the app keeps its own full-page handling. */
+  html.shell body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: auto;
+  }
+
+  /* The bar is bare over the hero: while the page still reads as one screen
+     there is nothing behind it to separate from, so it paints no glass.
+     `shell/site.js` adds `is-scrolled` once the page leaves the top. */
+  html.shell #nav {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--page-pad);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+    background: transparent;
+    pointer-events: none;
+    z-index: 4;
+    transition: background-color 200ms ease;
+  }
+
+  /* Scrolled, the hero's ink would collide with the wordmark, so the bar
+     frosts: the page's wash and a blur over what passes beneath it. */
+  html.shell #nav.is-scrolled {
+    background: rgba(241, 242, 248, 0.82);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  html.shell #nav .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+  }
+
+  html.shell #nav .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+    pointer-events: auto;
+  }
+
+  html.shell #nav .nav-logo img {
+    display: block;
+    width: 26px;
+    height: 26px;
+  }
+
+  html.shell #nav .nav-wordmark {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  /* The section doors sit together on the right, with the one call to action
+     after them; the bar's ink is the page's, so the links can stay quiet. */
+  html.shell #nav .nav-links {
+    display: flex;
+    align-items: center;
+    gap: clamp(15px, 1.7vw, 26px);
+    margin-left: auto;
+    margin-right: clamp(16px, 2vw, 30px);
+    pointer-events: auto;
+  }
+
+  html.shell #nav .nav-links a {
+    color: var(--intro-muted);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  html.shell #nav .nav-links a:hover,
+  html.shell #nav .nav-links a.is-active {
+    color: var(--intro-ink);
+  }
+
+  html.shell #nav .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 15px;
+    border-radius: 999px;
+    background: var(--intro-ink);
+    color: var(--intro-on-ink);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+    pointer-events: auto;
+    transition: opacity 120ms ease;
+  }
+
+  html.shell #nav .nav-cta:hover {
+    opacity: 0.86;
+  }
+
+  html.shell #nav a:focus-visible {
+    outline: 2px solid var(--intro-accent);
+    outline-offset: 4px;
+  }
+
+  /* The phone and the copy share one hero screen under the bar; the showcase
+     follows in normal flow, so the page starts scrolling at the hero's edge.
+     A narrower window keeps only the phone (the last rule in this style sheet
+     hides the column below 1000px). */
+  html.shell #device {
+    position: relative;
+    top: auto;
+    inset: auto;
+    box-sizing: border-box;
+    min-height: calc(100vh - var(--nav-height));
+    margin-top: var(--nav-height);
+    align-items: flex-start;
+    gap: var(--hero-gap);
+    padding: 24px var(--page-pad) 20px;
+  }
+
+  /* The page's one ambient light: an ellipse behind the hero's phone, ending a
+     little above the hero's floor so the next section begins on plain canvas.
+     It is anchored to the device, not to the window, so it scrolls away with
+     the product instead of washing every section below. */
+  html.shell #device::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      46% 58% at 74% 46%,
+      rgba(var(--duo-brand), 0.22),
+      rgba(var(--duo-brand), 0.1) 42%,
+      rgba(var(--duo-brand), 0) 72%
+    );
+  }
+
+  html.shell #intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+    position: relative;
+    z-index: 1;
+    width: var(--intro-width);
+    padding-top: 8px;
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+    text-align: left;
+    pointer-events: auto;
+    user-select: text;
+  }
+
+  html.shell #intro .intro-eyebrow {
+    margin: 0 0 18px;
+    color: var(--intro-accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  html.shell #intro .intro-title {
+    margin: 0 0 24px;
+    font-family: var(--intro-serif);
+    font-size: clamp(40px, 4.2vw, 60px);
+    font-weight: 400;
+    line-height: 1.06;
+    letter-spacing: -0.015em;
+  }
+
+  html.shell #intro .intro-lead {
+    max-width: 34em;
+    margin: 0 0 32px;
+    color: var(--intro-muted);
+    font-size: 17px;
+    line-height: 1.65;
+    /* Three long clauses read as a paragraph, not as a stack: balancing the
+       lines keeps the last one from being a two-word orphan at any width. */
+    text-wrap: balance;
+  }
+
+  html.shell #intro .intro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 22px;
+    margin: 0 0 18px;
+  }
+
+  /* One primary door, shared by the hero and the closing panel. */
+  html.shell .intro-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--intro-ink);
+    color: var(--intro-on-ink);
+    font-family: var(--intro-font);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 120ms ease;
+  }
+
+  html.shell .intro-primary:hover {
+    opacity: 0.86;
+  }
+
+  html.shell .intro-primary:active {
+    opacity: 0.72;
+  }
+
+  html.shell .intro-primary:focus-visible {
+    outline: 2px solid var(--intro-accent);
+    outline-offset: 3px;
+  }
+
+  html.shell #intro .intro-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--intro-ink);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  html.shell #intro .intro-secondary svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 160ms ease;
+  }
+
+  html.shell #intro .intro-secondary:hover svg {
+    transform: translateY(2px);
+  }
+
+  html.shell #intro .intro-secondary:focus-visible {
+    outline: 2px solid var(--intro-accent);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  html.shell #intro .intro-availability {
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  /* The wrapper takes the frame's scaled footprint, so the hero's centring
+     and `--hero-width` use the size the phone actually paints at. The frame
+     inside keeps its reference size and is scaled whole from the top left. */
+  html.shell .device-frame {
+    display: block;
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: var(--frame-width);
+    height: var(--frame-height);
+  }
+
+  html.shell .device-frame #frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(var(--frame-scale));
+    transform-origin: top left;
+  }
+
+  /* The phone is a live app, not a still: the hint under it says so, and the
+     frame takes a brand ring while the pointer — or focus — is inside it. */
+  html.shell .device-hint {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 0;
+    color: var(--intro-muted);
+    font-family: var(--intro-font);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  html.shell .device-hint svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    fill: none;
+    stroke: var(--intro-accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  html.shell #frame {
+    padding: var(--bezel);
+    border-radius: var(--frame-radius);
+    background: linear-gradient(155deg, #3C3D45 0%, #17181D 40%, #0B0C10 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+      inset 0 1px 1px rgba(255, 255, 255, 0.16),
+      0 0 0 0.5px rgba(0, 0, 0, 0.8),
+      0 18px 40px -12px rgba(20, 22, 40, 0.32),
+      0 52px 120px -32px rgba(20, 22, 40, 0.42);
+  }
+
+  html.shell #frame:hover,
+  html.shell #frame:focus-within {
+    outline: 3px solid rgba(var(--duo-brand), 0.22);
+    outline-offset: 3px;
+  }
+
+  html.shell #screen {
+    position: relative;
+    width: var(--screen-width);
+    height: var(--screen-height);
+    border-radius: var(--screen-radius);
+    background-color: #FFFFFF;
+    /* The launch mark, exactly as the splash picture shows it on the bare
+       page; the screen wears it while the engine boots. */
+    background-image: url("../splash/img/light-2x.png");
+    background-image: image-set(
+      url("../splash/img/light-1x.png") 1x,
+      url("../splash/img/light-2x.png") 2x,
+      url("../splash/img/light-3x.png") 3x,
+      url("../splash/img/light-4x.png") 4x
+    );
+    background-position: center;
+    background-size: 168px 168px;
+    background-repeat: no-repeat;
+  }
+
+  html.shell #app {
+    inset: var(--status-height) 0 0 0;
+  }
+
+  /* The strip takes the app bar's colour, written by the app
+     (`lib/main.dart` via `WebChrome.setAppBarColor`), so the island rides
+     the same surface as the bar below it — a page with no bar sits within a
+     hair of it. Unset before Dart runs; the fallback is the boot field the
+     screen is showing. */
+  html.shell #statusbar {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--status-height);
+    align-items: center;
+    justify-content: center;
+    background: var(--duo-appbar, #FFFFFF);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  html.shell #island {
+    position: relative;
+    width: 104px;
+    height: 28px;
+    border-radius: 14px;
+    background: #000000;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  /* The lens, so the island reads as hardware rather than a black pill. */
+  html.shell #island::after {
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #2C3C58 0%, #0B111A 62%, #000000 100%);
+    box-shadow: inset 0 0 0 0.5px rgba(130, 160, 210, 0.28);
+  }
+
+  /* The glass edge: one hairline inside the screen's radius, above the app. */
+  html.shell #screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  html.shell .hw-button {
+    display: block;
+    position: absolute;
+    width: 2.5px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #303138 0%, #0B0C10 55%, #26272E 100%);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.9), 1px 0 1px rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+  }
+
+  html.shell .hw-action {
+    left: -2.5px;
+    top: 15.5%;
+    height: 26px;
+  }
+
+  html.shell .hw-volume-up {
+    left: -2.5px;
+    top: 20.5%;
+    height: 54px;
+  }
+
+  html.shell .hw-volume-down {
+    left: -2.5px;
+    top: 27%;
+    height: 54px;
+  }
+
+  html.shell .hw-power {
+    right: -2.5px;
+    top: 22.5%;
+    height: 88px;
+    background: linear-gradient(180deg, #303138 0%, #0B0C10 55%, #26272E 100%);
+  }
+
+  /* Every section below the hero shares one content grid and one header. */
+  html.shell .section-inner {
+    box-sizing: border-box;
+    width: min(100%, var(--inside-width));
+    margin: 0 auto;
+  }
+
+  html.shell .section-head {
+    max-width: 800px;
+    margin: 0 0 clamp(36px, 4.5vw, 56px);
+  }
+
+  html.shell .section-eyebrow {
+    margin: 0 0 14px;
+    color: var(--intro-accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  html.shell .section-title {
+    margin: 0;
+    font-family: var(--intro-serif);
+    font-size: clamp(32px, 3.4vw, 44px);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  /* Anchors stop below the fixed bar instead of under it. */
+  html.shell #start,
+  html.shell #novel,
+  html.shell #cast,
+  html.shell #persona,
+  html.shell #screens,
+  html.shell #local-first,
+  html.shell #details,
+  html.shell #get {
+    scroll-margin-top: calc(var(--nav-height) + 24px);
+  }
+
+  /* The loop, in three beats. No pictures yet: the copy has to carry this. */
+  html.shell #start {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(72px, 10vh, 128px) var(--page-pad) clamp(24px, 4vh, 48px);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #start .start-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(28px, 4vw, 56px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  html.shell #start .start-number {
+    display: block;
+    margin: 0 0 18px;
+    color: var(--intro-accent);
+    font-family: var(--intro-serif);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+  }
+
+  html.shell #start .start-step h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  html.shell #start .start-step p {
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+
+  /* Every still screenshot on the page is a phone: one graphite body, island
+     and hardware buttons, sized by its column through container units so the
+     same drawing works from a 230px satellite to a 360px chapter. */
+  html.shell .phone {
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    padding: 2.1cqw;
+    border-radius: 11.5cqw;
+    background: linear-gradient(155deg, #3C3D45 0%, #17181D 40%, #0B0C10 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+      inset 0 1px 1px rgba(255, 255, 255, 0.16),
+      0 0 0 0.5px rgba(0, 0, 0, 0.8),
+      0 2px 3px rgba(0, 0, 0, 0.18),
+      0 26px 52px -20px rgba(20, 22, 40, 0.42),
+      0 64px 120px -48px rgba(20, 22, 40, 0.35);
+    transform: rotate(var(--lean, 0deg));
+    transform-origin: 50% 100%;
+    transition:
+      transform 380ms cubic-bezier(0.33, 0, 0.2, 1),
+      box-shadow 380ms cubic-bezier(0.33, 0, 0.2, 1);
+  }
+
+  html.shell .phone-screen {
+    position: relative;
+    overflow: hidden;
+    border-radius: 9.4cqw;
+    background: var(--intro-surface);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+  }
+
+  html.shell .phone-screen picture {
+    display: block;
+  }
+
+  html.shell .phone-screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* The glass edge above the app, as on the hero's screen. */
+  html.shell .phone-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  html.shell .phone-island {
+    position: absolute;
+    top: 1.2cqw;
+    left: 50%;
+    width: 22cqw;
+    height: 5.4cqw;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #000000;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  html.shell .phone-island::after {
+    content: "";
+    position: absolute;
+    right: 2.6cqw;
+    top: 50%;
+    width: 1.8cqw;
+    height: 1.8cqw;
+    margin-top: -0.9cqw;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #2C3C58 0%, #0B111A 62%, #000000 100%);
+    box-shadow: inset 0 0 0 0.5px rgba(130, 160, 210, 0.28);
+  }
+
+  html.shell .phone-button {
+    position: absolute;
+    width: 0.8cqw;
+    border-radius: 1cqw;
+    background: linear-gradient(180deg, #303138 0%, #0B0C10 55%, #26272E 100%);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.9), 1px 0 1px rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+  }
+
+  html.shell .phone-button--action {
+    left: -0.8cqw;
+    top: 15%;
+    height: 6%;
+  }
+
+  html.shell .phone-button--volume-up {
+    left: -0.8cqw;
+    top: 23%;
+    height: 11%;
+  }
+
+  html.shell .phone-button--volume-down {
+    left: -0.8cqw;
+    top: 36%;
+    height: 11%;
+  }
+
+  html.shell .phone-button--power {
+    right: -0.8cqw;
+    top: 25%;
+    height: 14%;
+  }
+
+  /* The three parts of the product, one chapter each. The screen alternates
+     sides; the copy stays on the reading edge. */
+  html.shell #inside {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(72px, 9vh, 120px) var(--page-pad) clamp(48px, 7vh, 96px);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #inside .chapters {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(72px, 9vh, 128px);
+  }
+
+  html.shell #inside .chapter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+    align-items: center;
+    gap: clamp(48px, 7vw, 104px);
+  }
+
+  html.shell #inside .chapter:nth-child(even) .chapter-media {
+    order: -1;
+  }
+
+  html.shell #inside .chapter-copy {
+    min-width: 0;
+  }
+
+  html.shell #inside .chapter-kicker {
+    margin: 0 0 12px;
+    color: var(--intro-accent);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  html.shell #inside .chapter-copy h3 {
+    margin: 0 0 16px;
+    font-family: var(--intro-serif);
+    font-size: clamp(28px, 2.6vw, 36px);
+    font-weight: 400;
+    line-height: 1.16;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  html.shell #inside .chapter-body {
+    margin: 0 0 22px;
+    color: var(--intro-muted);
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+
+  html.shell #inside .chapter-points {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  html.shell #inside .chapter-points li {
+    position: relative;
+    padding-left: 16px;
+    color: var(--intro-muted);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  html.shell #inside .chapter-points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--intro-accent);
+    opacity: 0.7;
+  }
+
+  /* The phone frame sizes itself from this box, so the screen scales with the
+     chapter's column instead of with the window. */
+  html.shell #inside .chapter-media {
+    width: min(100%, 360px);
+    justify-self: center;
+    container-type: inline-size;
+  }
+
+  /* The screen tour: six rooms, each a composition of framed screens under a
+     copy row — a lead with its satellites, dropped and faintly leaned so the
+     band reads as a spread rather than a row of cards. */
+  /* The tour is the page's gallery: one recessed wall from the first room to
+     the last, ruled at its top edge. The phones carry the colour; the wall
+     stays quiet, so the section reads as a room rather than a second hero. */
+  html.shell #screens {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(72px, 9vh, 120px) var(--page-pad);
+    border-top: 1px solid var(--intro-hair);
+    border-bottom: 1px solid var(--intro-hair);
+    background: var(--intro-wall);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #screens .screens-lead {
+    max-width: 62ch;
+    margin: 20px 0 0;
+    color: var(--intro-muted);
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+
+  html.shell #screens .rooms {
+    display: flex;
+    flex-direction: column;
+    margin-top: clamp(36px, 4.5vh, 56px);
+  }
+
+  html.shell #screens .room {
+    padding: clamp(52px, 7vh, 88px) 0;
+    border-top: 1px solid var(--intro-hair);
+  }
+
+  html.shell #screens .room:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The room's copy row: the numeral and its count hold the left margin, the
+     name sits beside them, and the explanation runs along the reading edge. */
+  html.shell #screens .room-head {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: baseline;
+    gap: 12px clamp(20px, 2.6vw, 40px);
+    margin: 0 0 clamp(28px, 3.5vw, 40px);
+  }
+
+  html.shell #screens .room-mark {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+
+  html.shell #screens .room-index {
+    color: var(--intro-accent);
+    font-family: var(--intro-serif);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+  }
+
+  html.shell #screens .room-count {
+    color: var(--intro-muted);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  html.shell #screens .room-kicker {
+    margin: 0 0 8px;
+    color: var(--intro-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  html.shell #screens .room-heading h3 {
+    margin: 0;
+    font-family: var(--intro-serif);
+    font-size: clamp(26px, 2.4vw, 34px);
+    font-weight: 400;
+    line-height: 1.16;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  html.shell #screens .room-body {
+    max-width: 48ch;
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  /* A room is a centred composition: a lead screen with smaller satellites
+     dropped down the band. The lean and the drop are per-figure (`--lean`,
+     `--drop`), so the copy's order and the picture's rhythm stay independent. */
+  html.shell #screens .room-shots {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(18px, 2.4vw, 34px);
+  }
+
+  html.shell #screens .shot {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    /* The phone frame's bezel, island and buttons are container-relative, so
+       the same markup holds at a chapter's 360 px and a satellite's 230. */
+    container-type: inline-size;
+  }
+
+  html.shell #screens .shot-lead {
+    flex: 0 1 34%;
+    max-width: 360px;
+  }
+
+  html.shell #screens .shot-side {
+    flex: 0 1 23%;
+    max-width: 252px;
+  }
+
+  html.shell #screens .room--pair .shot-lead {
+    flex-basis: 40%;
+    max-width: 400px;
+  }
+
+  html.shell #screens .room--pair .shot-side {
+    flex-basis: 26%;
+    max-width: 270px;
+  }
+
+  html.shell #screens .room--triptych .shot-lead {
+    flex-basis: 38%;
+    max-width: 380px;
+  }
+
+  html.shell #screens .room--triptych .shot-side {
+    flex-basis: 25%;
+    max-width: 250px;
+  }
+
+  html.shell #screens .shot .phone {
+    margin-top: calc(var(--drop, 0) * 1cqw);
+  }
+
+  /* The frames are pictures, not doors, so the lift is the only response — and
+     it straightens the lean, enough to say the sheet is a surface, not a still. */
+  html.shell #screens .shot:hover .phone {
+    transform: translateY(-8px) rotate(0deg);
+  }
+
+  html.shell #screens .shot figcaption {
+    display: grid;
+    gap: 4px;
+    margin-top: 16px;
+  }
+
+  html.shell #screens .shot-name {
+    color: var(--intro-ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  html.shell #screens .shot-note {
+    color: var(--intro-muted);
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+
+  /* A drawer is a shelf: one labelled band per group, the label ruling across
+     the page above its screens, so the people and what they carry read as two
+     parts of one dossier rather than two separate rooms. */
+  html.shell #screens .room-shots--stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(36px, 4.5vw, 60px);
+  }
+
+  html.shell #screens .shot-row {
+    display: grid;
+    gap: 18px;
+  }
+
+  html.shell #screens .shot-row-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  html.shell #screens .shot-row-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--intro-hair);
+  }
+
+  html.shell #screens .shot-row-items {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: clamp(18px, 2.4vw, 34px);
+  }
+
+  /* A drawer carries a few screens, so it sets its own scale: the lead stays a
+     readable size and the satellites fit beside it. A three-up shelf has room
+     for larger phones than a four-up one. */
+  html.shell #screens .shot-row .shot-lead {
+    flex: 0 1 30%;
+    max-width: 320px;
+  }
+
+  html.shell #screens .shot-row .shot-side {
+    flex: 0 1 22%;
+    max-width: 240px;
+  }
+
+  html.shell #screens .shot-row--trio .shot-lead {
+    flex-basis: 34%;
+    max-width: 360px;
+  }
+
+  html.shell #screens .shot-row--trio .shot-side {
+    flex-basis: 26%;
+    max-width: 280px;
+  }
+
+  /* A pair cannot fill a shelf, so the closing drawer centres its two screens
+     and takes the trio's scale: the rule still names the group, but the plates
+     no longer hang off its left end with the right half of the shelf empty. */
+  html.shell #screens .shot-row--duo .shot-row-items {
+    justify-content: center;
+  }
+
+  html.shell #screens .shot-row--duo .shot-lead {
+    flex-basis: 34%;
+    max-width: 360px;
+  }
+
+  html.shell #screens .shot-row--duo .shot-side {
+    flex-basis: 26%;
+    max-width: 280px;
+  }
+
+  /* Local-first is the reason to choose Duo, so it steps up off the tour's
+     wall as the page's raised sheet, then returns to the canvas. */
+  html.shell #local-first {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(64px, 9vh, 112px) var(--page-pad);
+    border-bottom: 1px solid var(--intro-hair);
+    background: var(--intro-surface);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #local-first .local-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: start;
+    gap: clamp(48px, 7vw, 104px);
+  }
+
+  html.shell #local-first .local-lead {
+    max-width: 34em;
+    margin: 20px 0 0;
+    color: var(--intro-muted);
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+
+  html.shell #local-first .local-points {
+    display: grid;
+    gap: 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  html.shell #local-first .local-points h3 {
+    margin: 0 0 7px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  html.shell #local-first .local-points p {
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  html.shell #details {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(72px, 9vh, 120px) var(--page-pad);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #details .details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 4.5vw, 56px) clamp(40px, 6vw, 96px);
+  }
+
+  html.shell #details .details-item h3 {
+    margin: 0 0 8px;
+    font-size: 16.5px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  html.shell #details .details-item p {
+    margin: 0;
+    color: var(--intro-muted);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  /* The close: the preview is the one open door, and the two store doors keep
+     the install-button shape they will ship with; the click answers in the
+     snackbar until the builds are listed. */
+  html.shell #get {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: 0 var(--page-pad) clamp(72px, 9vh, 120px);
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #get .get-panel {
+    box-sizing: border-box;
+    padding: clamp(48px, 6.5vw, 84px) clamp(28px, 5vw, 72px);
+    border-radius: 32px;
+    background:
+      radial-gradient(70% 120% at 50% 0%, rgba(var(--duo-brand), 0.12), rgba(var(--duo-brand), 0) 70%),
+      var(--intro-surface);
+    text-align: center;
+  }
+
+  html.shell #get .section-title {
+    font-size: clamp(36px, 4vw, 54px);
+  }
+
+  html.shell #get .get-lead {
+    max-width: 46ch;
+    margin: 16px auto 0;
+    color: var(--intro-muted);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  html.shell #get .get-actions {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0 0;
+  }
+
+  html.shell #get .get-stores {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px 0 0;
+  }
+
+  /* A store that is not open yet is still a door: the pill keeps the icon
+     button's shape, but stays quiet beside the filled preview action. */
+  html.shell #get .get-stores button {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--intro-hair);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--intro-ink);
+    font-family: var(--intro-font);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  html.shell #get .get-stores button:hover {
+    background: var(--intro-hair);
+    border-color: transparent;
+  }
+
+  html.shell #get .get-stores button:focus-visible {
+    outline: 2px solid var(--intro-accent);
+    outline-offset: 3px;
+  }
+
+  html.shell #get .get-stores svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* The store doors' answer: the app's snackbar shape at the foot of the page.
+     It appears only in a shell window, because its buttons do. */
+  html.shell #toast {
+    box-sizing: border-box;
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 30;
+    max-width: min(480px, calc(100vw - 48px));
+    padding: 14px 18px;
+    border-radius: 4px;
+    background: #313033;
+    color: #F4EFF4;
+    font-family: var(--intro-font);
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow:
+      0 6px 10px 4px rgba(0, 0, 0, 0.15),
+      0 2px 3px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 8px);
+    pointer-events: none;
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 0s linear 180ms;
+  }
+
+  html.shell #toast.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  html.shell #get .get-note {
+    margin: 26px 0 0;
+    color: var(--intro-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  /* The footer carries the page's own doors and the developer's. */
+  html.shell #footer {
+    display: block;
+    position: relative;
+    z-index: 1;
+    padding: clamp(48px, 6vh, 72px) var(--page-pad) 48px;
+    color: var(--intro-muted);
+    font-family: var(--intro-font);
+  }
+
+  html.shell #footer .footer-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr) minmax(0, 0.9fr);
+    align-items: start;
+    gap: clamp(28px, 4vw, 64px);
+    padding-top: 28px;
+    border-top: 1px solid var(--intro-hair);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  html.shell #footer .footer-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--intro-ink);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  html.shell #footer .footer-mark img {
+    display: block;
+    width: 22px;
+    height: 22px;
+  }
+
+  html.shell #footer .footer-brand p {
+    max-width: 24em;
+    margin: 10px 0 0;
+  }
+
+  html.shell #footer .footer-nav {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(4, auto);
+    gap: 8px 32px;
+    align-content: start;
+    justify-content: start;
+  }
+
+  html.shell #footer .footer-dev {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    justify-items: start;
+  }
+
+  html.shell #footer .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  html.shell #footer .footer-copy {
+    margin: 0;
+  }
+
+  html.shell #footer a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  html.shell #footer a:hover {
+    color: var(--intro-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* The bar's frost arrives with the scroll, but a reader who asked motion to
+   settle gets it at once. */
+@media (prefers-reduced-motion: reduce) {
+  html.shell {
+    scroll-behavior: auto;
+  }
+
+  html.shell #nav,
+  html.shell #nav .nav-links a,
+  html.shell #nav .nav-cta,
+  html.shell #intro .intro-secondary svg,
+  html.shell .skip-link,
+  html.shell #toast,
+  html.shell .phone {
+    transition: none;
+  }
+}
+
+/* Align the bar with the hero's own grid: the wordmark starts on the copy's
+   left edge and the call to action ends on the phone's right edge. */
+@media (min-width: 1000px) and (min-height: 760px) and (pointer: fine) {
+  html.shell #nav {
+    padding: 0;
+  }
+
+  html.shell #nav .nav-inner {
+    width: min(calc(100% - 2 * var(--page-pad)), var(--hero-width));
+  }
+
+  /* The hero starts under the fixed bar; the skip door lands on the page's
+     true top rather than on the hero's offset margin. */
+  html.shell #main {
+    scroll-margin-top: var(--nav-height);
+  }
+
+  /* The skip door waits above the viewport until a keyboard reaches it. */
+  html.shell .skip-link {
+    display: block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--intro-ink);
+    color: var(--intro-canvas);
+    font-family: var(--intro-font);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform 160ms ease;
+  }
+
+  html.shell .skip-link:focus {
+    transform: translateY(0);
+    outline: 2px solid var(--intro-accent);
+    outline-offset: 2px;
+  }
+
+  html.shell #main:focus {
+    outline: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (min-width: 720px) and (min-height: 760px) and (pointer: fine) {
+  html.shell #nav.is-scrolled {
+    background: rgba(13, 14, 19, 0.8);
+  }
+
+  html.shell #statusbar {
+    background: var(--duo-appbar, #0D0E13);
+  }
+
+  html.shell #screen {
+    background-color: #0D0E13;
+    background-image: url("../splash/img/dark-2x.png");
+    background-image: image-set(
+      url("../splash/img/dark-1x.png") 1x,
+      url("../splash/img/dark-2x.png") 2x,
+      url("../splash/img/dark-3x.png") 3x,
+      url("../splash/img/dark-4x.png") 4x
+    );
+  }
+
+  html.shell #device::before {
+    background: radial-gradient(
+      50% 62% at 74% 46%,
+      rgba(var(--duo-brand), 0.2),
+      rgba(var(--duo-brand), 0.1) 42%,
+      rgba(var(--duo-brand), 0) 86%
+    );
+  }
+
+  html.shell #frame {
+    background: linear-gradient(155deg, #3A3B43 0%, #191A1F 42%, #0B0C10 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+      inset 0 1px 1px rgba(255, 255, 255, 0.11),
+      0 0 0 0.5px rgba(0, 0, 0, 0.9),
+      0 24px 60px -16px rgba(0, 0, 0, 0.72),
+      0 64px 150px -40px rgba(0, 0, 0, 0.62);
+  }
+
+  html.shell #frame:hover,
+  html.shell #frame:focus-within {
+    outline-color: rgba(var(--duo-brand), 0.32);
+  }
+
+  html.shell .phone {
+    background: linear-gradient(155deg, #3A3B43 0%, #191A1F 42%, #0B0C10 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+      inset 0 1px 1px rgba(255, 255, 255, 0.11),
+      0 0 0 0.5px rgba(0, 0, 0, 0.9),
+      0 26px 60px -20px rgba(0, 0, 0, 0.78),
+      0 64px 120px -48px rgba(0, 0, 0, 0.66);
+  }
+
+  html.shell #get .get-panel {
+    background:
+      radial-gradient(70% 120% at 50% 0%, rgba(var(--duo-brand), 0.2), rgba(var(--duo-brand), 0) 70%),
+      var(--intro-surface);
+  }
+}
+
+/* A narrow desktop has no room for both: keep the phone on its own and drop
+   the page below the hero. */
+@media (max-width: 999px) {
+  html.shell #intro,
+  html.shell #start,
+  html.shell #inside,
+  html.shell #screens,
+  html.shell #local-first,
+  html.shell #details,
+  html.shell #get,
+  html.shell #footer {
+    display: none;
+  }
+
+  /* No section doors or call to action either: the app is the whole window. */
+  html.shell #nav .nav-links,
+  html.shell #nav .nav-cta {
+    display: none;
+  }
+
+  /* The copy column is gone, so the phone stands alone and the light follows
+     it to the middle instead of staying where a second column used to be. */
+  html.shell #device::before {
+    background: radial-gradient(
+      58% 62% at 50% 45%,
+      rgba(var(--duo-brand), 0.22),
+      rgba(var(--duo-brand), 0.1) 42%,
+      rgba(var(--duo-brand), 0) 72%
+    );
+  }
+}
+
+@media (prefers-color-scheme: dark) and (max-width: 999px) {
+  html.shell #device::before {
+    background: radial-gradient(
+      58% 62% at 50% 45%,
+      rgba(var(--duo-brand), 0.2),
+      rgba(var(--duo-brand), 0.1) 42%,
+      rgba(var(--duo-brand), 0) 86%
+    );
+  }
+}

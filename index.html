@@ -1,0 +1,1005 @@
+<!DOCTYPE html><html lang="en"><head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/duo-app/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Duo is a local-first novel roleplay chat app. A novel sets the scene — its cast, its place, its opening moment — and you step in as your persona to play what happens next.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Duo">
+  <meta property="og:title" content="Duo — Novel roleplay chat">
+  <meta property="og:description" content="A novel sets the scene, and you play what happens next. Local-first, with the cast and their memories on your device.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Duo — Novel roleplay chat">
+  <meta name="twitter:description" content="A novel sets the scene, and you play what happens next. Local-first, with the cast and their memories on your device.">
+
+  <!-- The browser chrome colour. Pinned to the brand seed (#6A76BE) as the
+       build-time fallback, matching web/manifest.json; the app rewrites it to
+       the active atmosphere pack as soon as it runs (lib/main.dart's
+       _WebChromeSync via lib/app/theme/web_chrome_web.dart). -->
+  <meta name="theme-color" content="#6A76BE">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="duo">
+  <!-- Opaque on purpose: the manifest's "any" icon has no plate, but iOS fills a
+       transparent touch icon with black before it rounds the corners. -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <title>Duo — Novel roleplay chat</title>
+  <link rel="manifest" href="manifest.json">
+  
+  
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  
+  
+  
+  
+  
+  <style id="splash-screen-style">
+    html {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      background-color: #FFFFFF;
+          background-size: 100% 100%;
+    }
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -ms-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+
+    .contain {
+      display:block;
+      width:100%; height:100%;
+      object-fit: contain;
+    }
+
+    .stretch {
+      display:block;
+      width:100%; height:100%;
+    }
+
+    .cover {
+      display:block;
+      width:100%; height:100%;
+      object-fit: cover;
+    }
+
+    .bottom {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      -ms-transform: translate(-50%, 0);
+      transform: translate(-50%, 0);
+    }
+
+    .bottomLeft {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .bottomRight {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #0D0E13;
+          }
+    }
+  </style>
+
+  <!--
+    The desktop shell.
+
+    Its stylesheet and scripts live in `shell/`, not in this file: the shell is
+    a desktop-only presentation, and `shell/style.css`, `shell/boot.js`,
+    `shell/site.js` and `shell/data.js` keep it out of the app entry. The splash
+    plugin replaces `splash-screen-style` and `picture#splash` on every
+    `dart run flutter_native_splash:create`; nothing under `shell/` is touched.
+    The splash picture stays the body's first child and the plugin keeps owning
+    it; on a desktop window the stage simply paints over it, while the screen
+    shows the same mark as a CSS background.
+  -->
+  <link rel="stylesheet" href="shell/style.css">
+  <script src="shell/boot.js"></script>
+  <script id="splash-screen-script">
+    function removeSplashFromWeb() {
+      document.getElementById("splash")?.remove();
+      document.getElementById("splash-branding")?.remove();
+      document.body.style.background = "transparent";
+    }
+  </script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <picture id="splash">
+      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
+      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
+      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
+  </picture>
+
+  <!-- The shell's top bar: the wordmark, the section doors and the one
+       standing call to action. It is part of the desktop presentation, so it
+       exists only in a `shell` window. -->
+  <header id="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="#top" aria-label="Duo — back to top">
+        <!-- The app's own generated mark, the one the splash and the frame's
+             boot screen already use; the dark ramp comes with it. -->
+        <picture class="nav-logo" aria-hidden="true">
+          <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x" media="(prefers-color-scheme: dark)">
+          <img src="splash/img/light-1x.png" srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x" alt="" width="26" height="26" decoding="async">
+        </picture>
+        <span class="nav-wordmark">Duo</span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#start">How it works</a>
+        <a href="#novel">Novel</a>
+        <a href="#cast">Cast</a>
+        <a href="#persona">Persona</a>
+        <a href="#screens">Screens</a>
+        <a href="#local-first">Local-first</a>
+      </nav>
+      <a class="nav-cta" href="#get">Try the preview</a>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+  <!-- The device frame: a backdrop, a dark body with hardware buttons, and the
+       screen Flutter mounts into (`#app`). The status band keeps the island off
+       the app's own bar. All of it is decoration on a desktop window; on every
+       other window `#device` stays hidden and the app is the whole page. -->
+  <div id="stage" aria-hidden="true"></div>
+  <div id="device">
+    <!-- The desktop copy column: what the app is, in the shell's own words.
+         It sits outside the phone because the engine only paints `#app`; the
+         column is presentational and appears only on a wide window. -->
+    <section id="intro">
+      <p class="intro-eyebrow">Novel roleplay</p>
+      <h1 class="intro-title">Be someone<br>in the story.</h1>
+      <p class="intro-lead">Duo is a local-first roleplay chat app. A novel sets the scene — its cast, its place, the moment it opens — and you step in as your persona to play what happens next.</p>
+      <div class="intro-actions">
+        <button type="button" class="intro-primary" data-copy-link>Copy link for your phone</button>
+        <a class="intro-secondary" href="#start">
+          <span>See how it works</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M18 13l-6 6"/><path d="M6 13l6 6"/></svg>
+        </a>
+      </div>
+      <p class="intro-availability">The preview runs in your phone's browser. No install.</p>
+    </section>
+    <!-- The frame is drawn at the reference phone's size and scaled whole by
+         `shell/boot.js`, so the screen keeps a real phone's logical size. The
+         hint under it is the affordance: the preview inside is a live app,
+         not a screenshot, and the click lands in it. -->
+    <div class="device-frame">
+      <div id="frame">
+        <div id="screen">
+          <div id="app"></div>
+          <div id="statusbar" aria-hidden="true"><div id="island"></div></div>
+        </div>
+        <span class="hw-button hw-action" aria-hidden="true"></span>
+        <span class="hw-button hw-volume-up" aria-hidden="true"></span>
+        <span class="hw-button hw-volume-down" aria-hidden="true"></span>
+        <span class="hw-button hw-power" aria-hidden="true"></span>
+      </div>
+      <p class="device-hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l6 16l2.5 -6l6 -2.5z"/></svg>
+        <span>Live preview — click inside to try it</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- The loop, in three beats: the copy under the hero says what happens
+       before any of the screens are explained. -->
+  <section id="start" aria-labelledby="start-title">
+    <div class="section-inner">
+      <header class="section-head">
+        <p class="section-eyebrow">How it works</p>
+        <h2 class="section-title" id="start-title">Pick a novel. Step in. Say something.</h2>
+      </header>
+      <ol class="start-steps">
+        <li class="start-step">
+          <span class="start-number" aria-hidden="true">01</span>
+          <h3>Pick a novel</h3>
+          <p>Each one arrives with its cast, its places and the moment it opens. Take one at a time; it's meant to stay with you.</p>
+        </li>
+        <li class="start-step">
+          <span class="start-number" aria-hidden="true">02</span>
+          <h3>Step in as your persona</h3>
+          <p>A name, a record, a briefing for how you got here. The cast meets that person, not a blank chat window.</p>
+        </li>
+        <li class="start-step">
+          <span class="start-number" aria-hidden="true">03</span>
+          <h3>Say something</h3>
+          <p>Open a conversation with anyone in the cast. They answer in character, remember what you said, and the story moves on from there.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- The three parts of the product, one chapter each. The cast chapter
+       shows the conversation, because memory is what the chat proves; the
+       roster lives in the tour. The screen changes sides down the page; the
+       copy stays on the reading edge. -->
+  <section id="inside" aria-labelledby="inside-title">
+    <div class="section-inner">
+      <header class="section-head">
+        <p class="section-eyebrow">Inside Duo</p>
+        <h2 class="section-title" id="inside-title">The world, the cast, and your part in it.</h2>
+      </header>
+      <div class="chapters">
+        <article class="chapter" id="novel">
+          <div class="chapter-copy">
+            <p class="chapter-kicker">The novel</p>
+            <h3>A world, built before you arrive.</h3>
+            <p class="chapter-body">A novel isn't a prompt. It holds the cast, the places and the lore they move through — and one opening moment every story starts from.</p>
+            <ul class="chapter-points">
+              <li>Lore memory the cast can consult</li>
+              <li>One opening moment, not a blank page</li>
+              <li>One novel at a time, so it stays immersive</li>
+            </ul>
+          </div>
+          <div class="chapter-media">
+            <div class="phone">
+              <div class="phone-screen">
+                <picture>
+                  <source srcset="shell/screens/novel-dark.jpg" media="(prefers-color-scheme: dark)">
+                  <img src="shell/screens/novel-light.jpg" alt="The novel page, with its cover and starting moment." width="1080" height="2400" loading="lazy" decoding="async">
+                </picture>
+                <span class="phone-island" aria-hidden="true"></span>
+              </div>
+              <span class="phone-button phone-button--action" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+              <span class="phone-button phone-button--power" aria-hidden="true"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="chapter" id="cast">
+          <div class="chapter-copy">
+            <p class="chapter-kicker">The cast</p>
+            <h3>They remember you.</h3>
+            <p class="chapter-body">Each character keeps their own memory of you: what you said, what it meant, and where the two of you stand. Tomorrow's conversation starts where tonight's ended.</p>
+            <ul class="chapter-points">
+              <li>A memory per character, not one shared log</li>
+              <li>Lore they can look up mid-scene</li>
+              <li>Their own voice, never a generic assistant</li>
+            </ul>
+          </div>
+          <div class="chapter-media">
+            <div class="phone">
+              <div class="phone-screen">
+                <picture>
+                  <source srcset="shell/screens/chat-dark.jpg" media="(prefers-color-scheme: dark)">
+                  <img src="shell/screens/chat-light.jpg" alt="A conversation with one character, with their replies and stickers in the thread." width="1080" height="2400" loading="lazy" decoding="async">
+                </picture>
+                <span class="phone-island" aria-hidden="true"></span>
+              </div>
+              <span class="phone-button phone-button--action" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+              <span class="phone-button phone-button--power" aria-hidden="true"></span>
+            </div>
+          </div>
+        </article>
+
+        <article class="chapter" id="persona">
+          <div class="chapter-copy">
+            <p class="chapter-kicker">Your persona</p>
+            <h3>You have a part to play.</h3>
+            <p class="chapter-body">Your persona is your side of the story — a record, a briefing for how you arrived, and notes for everything the record can't hold.</p>
+            <ul class="chapter-points">
+              <li>The self the cast meets</li>
+              <li>A briefing that sets your place in the world</li>
+              <li>Your own sticker pack, so you sound like yourself</li>
+            </ul>
+          </div>
+          <div class="chapter-media">
+            <div class="phone">
+              <div class="phone-screen">
+                <picture>
+                  <source srcset="shell/screens/persona-dark.jpg" media="(prefers-color-scheme: dark)">
+                  <img src="shell/screens/persona-light.jpg" alt="Your persona sheet, with your record, briefing and notes." width="1080" height="2400" loading="lazy" decoding="async">
+                </picture>
+                <span class="phone-island" aria-hidden="true"></span>
+              </div>
+              <span class="phone-button phone-button--action" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+              <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+              <span class="phone-button phone-button--power" aria-hidden="true"></span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- The screen tour: every surface the app ships, grouped into the six
+       rooms a story passes through. The lead names the app's four tabs and
+       the sidebar entries, because the rooms are a reading order, not the
+       app's IA. Each screen is a framed phone following the OS scheme; a
+       room's lead sets the scale and its satellites step down and lean. The
+       cast fills three shelves — the people, what they carry, what they can
+       do — the models room runs list → catalog → the choice itself, and the
+       market closes the tour with the release it installs. -->
+  <section id="screens" aria-labelledby="screens-title">
+    <div class="section-inner">
+      <header class="section-head">
+        <p class="section-eyebrow">Screen tour</p>
+        <h2 class="section-title" id="screens-title">The whole app, in six rooms.</h2>
+        <p class="screens-lead">Four tabs — Sessions, Characters, Assets and Persona — hold the app; Novels, Market, Models, Tools and Account open over them from the sidebar. The six rooms below follow one story from the first tap to the next novel. Every screen follows your device's appearance.</p>
+      </header>
+
+      <div class="rooms">
+        <article class="room room--pair" aria-labelledby="room-getting-in">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">01</span>
+              <span class="room-count">2 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">Getting in</p>
+              <h3 id="room-getting-in">Your own device, from the first tap.</h3>
+            </div>
+            <p class="room-body">No sign-up server and no password to remember. An email and a nickname make the account, and the settings page keeps the id, the language and the appearance in one place — all of it on this device.</p>
+          </header>
+          <div class="room-shots">
+            <figure class="shot shot-lead">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/account-create-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/account-create-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Create your account</span>
+                <span class="shot-note">An email and a nickname. The email is the account.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 34; --lean: -1.2deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/account-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/account-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Account &amp; appearance</span>
+                <span class="shot-note">ID, email, nickname, language, and the light/dark switch.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="room room--pair" aria-labelledby="room-library">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">02</span>
+              <span class="room-count">2 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">The library</p>
+              <h3 id="room-library">Novels arrive whole.</h3>
+            </div>
+            <p class="room-body">The library holds what you own. A novel arrives with its cast, its places, its lore and one opening moment — and its record keeps the story clock, the contents and the version it came from.</p>
+          </header>
+          <div class="room-shots">
+            <figure class="shot shot-lead">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/novels-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/novels-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Your library</span>
+                <span class="shot-note">The current novel, and a blank slot for the next.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 3; --lean: 0.7deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/novel-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/novel-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">A novel's record</span>
+                <span class="shot-note">Story time, contents, publication and definition.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="room" aria-labelledby="room-cast">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">03</span>
+              <span class="room-count">9 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">The cast</p>
+              <h3 id="room-cast">A sheet, a memory, a pack.</h3>
+            </div>
+            <p class="room-body">A character is a sheet — identity, appearance, background and temperament — with three sets of things around it: the lore they can consult, the sticker pack they speak with, and the tools the model can call. The Assets tab gathers every base and pack in the novel; the Tools page lists every capability. A character's sheet decides what is theirs, and which tools wait for your yes. Your own persona is the record on the other side of the table.</p>
+          </header>
+          <div class="room-shots room-shots--stacked">
+            <div class="shot-row shot-row--trio">
+              <p class="shot-row-label"><span>The people</span></p>
+              <div class="shot-row-items">
+                <figure class="shot shot-lead">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/character-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/character-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">A character's sheet</span>
+                    <span class="shot-note">Identity, appearance, background and temperament.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 18; --lean: -0.9deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/characters-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/characters-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">The cast</span>
+                    <span class="shot-note">Seven people, each with their own face, school and memory.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 34; --lean: 0.6deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/persona-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/persona-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Your persona</span>
+                    <span class="shot-note">Your record, the briefing that places you, and your notes.</span>
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+            <div class="shot-row">
+              <p class="shot-row-label"><span>What they carry</span></p>
+              <div class="shot-row-items">
+                <figure class="shot shot-lead">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/assets-lore-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/assets-lore-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Lore bases</span>
+                    <span class="shot-note">Bases, entries and the index that makes them searchable.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 16; --lean: -0.8deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/lore-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/lore-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Lore memory</span>
+                    <span class="shot-note">The novel's world, indexed and searchable mid-scene.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 30; --lean: 0.6deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/assets-stickers-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/assets-stickers-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Sticker packs</span>
+                    <span class="shot-note">One for the persona, one for every character.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 8; --lean: -0.4deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/sticker-pack-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/sticker-pack-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">A pack</span>
+                    <span class="shot-note">Forty-eight reactions, one word each.</span>
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+            <div class="shot-row shot-row--duo">
+              <p class="shot-row-label"><span>What they can do</span></p>
+              <div class="shot-row-items">
+                <figure class="shot shot-lead">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/tools-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/tools-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Tools</span>
+                    <span class="shot-note">The tools the model can call, and which may run without asking.</span>
+                  </figcaption>
+                </figure>
+                <figure class="shot shot-side" style="--drop: 24; --lean: -0.7deg">
+                  <div class="phone">
+                    <div class="phone-screen">
+                      <picture>
+                        <source srcset="shell/screens/tool-task-dark.jpg" media="(prefers-color-scheme: dark)">
+                        <img src="shell/screens/tool-task-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                      </picture>
+                      <span class="phone-island" aria-hidden="true"></span>
+                    </div>
+                    <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                    <span class="phone-button phone-button--power" aria-hidden="true"></span>
+                  </div>
+                  <figcaption>
+                    <span class="shot-name">Schedule tasks</span>
+                    <span class="shot-note">What the tool does, what the model is told, and the parameters it sends.</span>
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="room room--triptych" aria-labelledby="room-story">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">04</span>
+              <span class="room-count">3 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">The story</p>
+              <h3 id="room-story">Where the story happens.</h3>
+            </div>
+            <p class="room-body">The Sessions tab lists every conversation, newest first, with the story's clock above it. Open one and the chat is the story; its own page holds the model, the context budget, the tasks and the ended scenes — so a conversation can be tuned without leaving it.</p>
+          </header>
+          <div class="room-shots">
+            <figure class="shot shot-side" style="--drop: 30; --lean: -1.1deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/sessions-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/sessions-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Sessions</span>
+                <span class="shot-note">Every conversation, newest first, under the story's time.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-lead">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/chat-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/chat-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">The chat</span>
+                <span class="shot-note">Messages, stickers, the scene banner, and the story so far.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 30; --lean: 1.1deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/session-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/session-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Session settings</span>
+                <span class="shot-note">Chat model, context budget, tasks and ended scenes.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="room" aria-labelledby="room-models">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">05</span>
+              <span class="room-count">3 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">The models</p>
+              <h3 id="room-models">The models your story runs on.</h3>
+            </div>
+            <p class="room-body">A model profile is what the chat runs on, and the app points you here when one is missing. Models lists what's configured, with every duty it serves. Catalog browses models.dev — the open catalog of providers and their models, downloaded to the device — and a provider's page is where you choose the model, with its context window, tokens and capabilities.</p>
+          </header>
+          <div class="room-shots">
+            <figure class="shot shot-lead">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/models-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/models-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Models</span>
+                <span class="shot-note">What's configured, with every duty it serves.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 24; --lean: -0.9deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/model-catalog-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/model-catalog-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Catalog</span>
+                <span class="shot-note">Providers and their models, downloaded from models.dev.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 42; --lean: 0.4deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/model-picker-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/model-picker-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Choosing a model</span>
+                <span class="shot-note">Context window, tokens and capabilities, then Use this model.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </article>
+
+        <article class="room room--pair" aria-labelledby="room-market">
+          <header class="room-head">
+            <div class="room-mark">
+              <span class="room-index" aria-hidden="true">06</span>
+              <span class="room-count">2 screens</span>
+            </div>
+            <div class="room-heading">
+              <p class="room-kicker">The market</p>
+              <h3 id="room-market">Find another, or publish your own.</h3>
+            </div>
+            <p class="room-body">The market is a side door: browse novels you can install, or publish the definition you wrote. An update shows what's new in a release before you install it. The story you are in is already whole — the market only offers another.</p>
+          </header>
+          <div class="room-shots">
+            <figure class="shot shot-lead">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/market-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/market-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">Market</span>
+                <span class="shot-note">Novels to install or publish, with their tags and version.</span>
+              </figcaption>
+            </figure>
+            <figure class="shot shot-side" style="--drop: 30; --lean: -0.5deg">
+              <div class="phone">
+                <div class="phone-screen">
+                  <picture>
+                    <source srcset="shell/screens/novel-release-dark.jpg" media="(prefers-color-scheme: dark)">
+                    <img src="shell/screens/novel-release-light.jpg" alt="" width="1080" height="2400" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="phone-island" aria-hidden="true"></span>
+                </div>
+                <span class="phone-button phone-button--action" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-up" aria-hidden="true"></span>
+                <span class="phone-button phone-button--volume-down" aria-hidden="true"></span>
+                <span class="phone-button phone-button--power" aria-hidden="true"></span>
+              </div>
+              <figcaption>
+                <span class="shot-name">An update</span>
+                <span class="shot-note">What's new in the release, before you install it.</span>
+              </figcaption>
+            </figure>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- The trust chapter: its own band, because local-first is the reason to
+       choose Duo, not a line in the footer. -->
+  <section id="local-first" aria-labelledby="local-first-title">
+    <div class="local-inner section-inner">
+      <div class="local-copy">
+        <p class="section-eyebrow">Local-first</p>
+        <h2 class="section-title" id="local-first-title">Yours, on your device.</h2>
+        <p class="local-lead">Duo has no cloud library and no account server. Your novel, your persona, your sessions and every character's memory live in a database on your phone.</p>
+      </div>
+      <ul class="local-points">
+        <li>
+          <h3>No cloud account</h3>
+          <p>You set up a local account with an email and a nickname, and it stays on this device. There is no server-side profile to log in to.</p>
+        </li>
+        <li>
+          <h3>Your story stays put</h3>
+          <p>Sessions, notes and memories stay on this device. Only the context a turn needs goes to the model provider you choose; publishing a novel shares its definition, never your playthrough.</p>
+        </li>
+        <li>
+          <h3>Your model, your key</h3>
+          <p>Chat turns go to the model provider you choose, with a key only you hold. No first-party server sits in between.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- The practical questions a cold visitor has before opening the app. -->
+  <section id="details" aria-labelledby="details-title">
+    <div class="section-inner">
+      <header class="section-head">
+        <p class="section-eyebrow">Details</p>
+        <h2 class="section-title" id="details-title">Before you step in.</h2>
+      </header>
+      <div class="details-grid">
+        <article class="details-item">
+          <h3>Is Duo out yet?</h3>
+          <p>Not in the app stores. The preview is live in the browser, and it is the whole app — the same library, the same stories.</p>
+        </article>
+        <article class="details-item">
+          <h3>Do I need an account?</h3>
+          <p>Nothing to sign up for online. You create a local account on the device and it stays there.</p>
+        </article>
+        <article class="details-item">
+          <h3>Does it work offline?</h3>
+          <p>Your library does: novels, personas, sessions and memories are on the device. Chat needs the model provider you have configured.</p>
+        </article>
+        <article class="details-item">
+          <h3>What do I need to play?</h3>
+          <p>A Duo novel and a model profile. Built-in novels install from the market; point the profile at the provider you use.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- The close: one working door to the preview, and two store doors that
+       look like the install doors they will be; the click answers in the
+       snackbar until the builds are actually listed. -->
+  <section id="get" aria-labelledby="get-title">
+    <div class="section-inner">
+      <div class="get-panel">
+        <p class="section-eyebrow">Preview build</p>
+        <h2 class="section-title" id="get-title">Step into a story.</h2>
+        <p class="get-lead">The preview is the whole app, running on your device. Open it in your phone's browser and pick a novel.</p>
+        <div class="get-actions">
+          <button type="button" class="intro-primary" data-copy-link>Copy link for your phone</button>
+        </div>
+        <div class="get-stores">
+          <button type="button" data-platform="Android">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10l0 6"/><path d="M20 10l0 6"/><path d="M7 9h10v8a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-8a5 5 0 0 1 10 0"/><path d="M8 3l1 2"/><path d="M16 3l-1 2"/><path d="M9 18l0 3"/><path d="M15 18l0 3"/></svg>
+            <span>Download for Android</span>
+          </button>
+          <button type="button" data-platform="iOS">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.286 7.008c-3.216 0 -4.286 3.23 -4.286 5.92c0 3.229 2.143 8.072 4.286 8.072c1.165 -.05 1.799 -.538 3.214 -.538c1.406 0 1.607 .538 3.214 .538s4.286 -3.229 4.286 -5.381c-.03 -.011 -2.649 -.434 -2.679 -3.23c-.02 -2.335 2.589 -3.179 2.679 -3.228c-1.096 -1.606 -3.162 -2.113 -3.75 -2.153c-1.535 -.12 -3.032 1.077 -3.75 1.077c-.729 0 -2.036 -1.077 -3.214 -1.077z"/><path d="M12 4a2 2 0 0 0 2 -2a2 2 0 0 0 -2 2"/></svg>
+            <span>Download for iOS</span>
+          </button>
+        </div>
+        <p class="get-note">Local-first. No cloud account. Your story stays on your device.</p>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <footer id="footer">
+    <div class="footer-inner section-inner">
+      <div class="footer-brand">
+        <a class="footer-mark" href="#top" aria-label="Duo — back to top">
+          <picture aria-hidden="true">
+            <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x" media="(prefers-color-scheme: dark)">
+            <img src="splash/img/light-1x.png" srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x" alt="" width="22" height="22" decoding="async">
+          </picture>
+          <span>Duo</span>
+        </a>
+        <p>Novel roleplay chat, on your device.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Sections">
+        <a href="#start">How it works</a>
+        <a href="#novel">Novel</a>
+        <a href="#cast">Cast</a>
+        <a href="#persona">Persona</a>
+        <a href="#screens">Screens</a>
+        <a href="#local-first">Local-first</a>
+        <a href="#details">Details</a>
+      </nav>
+      <div class="footer-dev">
+        <nav class="footer-links" aria-label="Developer links"></nav>
+        <p class="footer-copy">© <span id="footer-year">2026</span> Elio Hwang</p>
+      </div>
+    </div>
+  </footer>
+
+  <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="shell/site.js"></script>
+
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async=""></script>
+
+
+</body></html>
